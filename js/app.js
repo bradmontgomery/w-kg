@@ -15,27 +15,34 @@ function convertWeight(lbs) {
 
 function renderTargets(kg) {
   // W = w/kg * kg
-  const targets = [
-    {name: "2 W/Kg", value: Math.round(kg * 2), state: "info"},
-    {name: "2.5 W/Kg", value: Math.round(kg * 2.5), state: "info"},
-    {name: "3 W/Kg", value: Math.round(kg * 3), state: "success"},
-    {name: "3.5 W/Kg", value: Math.round(kg * 3.5), state: "success"},
-    {name: "4 W/Kg", value: Math.round(kg * 4), state: "warning"},
-    {name: "4.5 W/Kg", value: Math.round(kg * 4.5), state: "warning"},
-    {name: "5 W/Kg", value: Math.round(kg * 5), state: "danger"},
-    {name: "6 W/Kg", value: Math.round(kg * 6), state: "danger"},
-    {name: "7 W/Kg", value: Math.round(kg * 7), state: "danger"},
-    {name: "8 W/Kg", value: Math.round(kg * 8), state: "danger"}
+  const targetGroups = [
+    [
+      {name: "2 W/Kg", value: Math.round(kg * 2), state: "info"},
+      {name: "2.5 W/Kg", value: Math.round(kg * 2.5), state: "info"},
+      {name: "3 W/Kg", value: Math.round(kg * 3), state: "success"},
+      {name: "3.5 W/Kg", value: Math.round(kg * 3.5), state: "success"},
+      {name: "4 W/Kg", value: Math.round(kg * 4), state: "warning"},
+    ],
+    [
+      {name: "4.5 W/Kg", value: Math.round(kg * 4.5), state: "warning"},
+      {name: "5 W/Kg", value: Math.round(kg * 5), state: "warning"},
+      {name: "6 W/Kg", value: Math.round(kg * 6), state: "danger"},
+      {name: "7 W/Kg", value: Math.round(kg * 7), state: "danger"},
+      {name: "8 W/Kg", value: Math.round(kg * 8), state: "danger"}
+    ]
   ];
   return (
-    <div className="tile is-ancestor">
-      {targets.map((target, i) => (
-        
-        <div key={i} className="tile is-parent is-2">
-          <article className={"tile is-child has-text-centered notification is-" + target.state}>
-            <p className="subtitle">{target.name}</p>
-            <p className="title">{target.value}</p>
-          </article>
+    <div>
+      {targetGroups.map((targets, g) => (
+        <div className="tile is-ancestor" key={g}>
+          {targets.map((target, i) => (
+            <div key={i * (g+1)} className="tile is-parent">
+              <article className={"tile is-child has-text-centered notification is-" + target.state}>
+                <p className="subtitle">{target.name}</p>
+                <p className="title">{target.value}</p>
+              </article>
+            </div>
+          ))}
         </div>
       ))}
     </div>
