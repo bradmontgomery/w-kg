@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html>
+
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>W/KG</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-    <script src="js/app.js" type="text/babel"></script>
+    <script src="https://kit.fontawesome.com/2b4d4320fb.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   </head>
+
   <body>
-  <section class="section">
-    <div class="container">
-      <div class="content">
-        <h1>w/kg targets</h1>
-        <div id="app"></div>
+    <section class="section">
+      <div class="container">
+        <div class="content">
+          <h1>
+            <span class="icon">
+              <i class="fa-solid fa-bullseye"></i>
+            </span>
+            <span>w/kg targets</span>  
+          </h1>
+          <div class="notification is-primary has-text-black">
+            <span class="icon">
+              <i class="fa-solid fa-bolt"></i>
+            </span>
+            <span><em>Question: </em> How much power do I need to produce to hit a 
+              <abbr title="watts per kilogram">w/kg</abbr> target?</span>
+          </div>
+          <div id="app"></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="js/app.js" type="text/babel"></script>
   </body>
+
 </html>
