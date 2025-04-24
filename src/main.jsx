@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     Component: Root,
     ErrorBoundary: ErrorBoundary,
     children: [
-      { index: true, path: 'wpkg', Component: WattPerKg },
+      { index: true, Component: WattPerKg },
       { path: 'fueling', Component: FuelingCalculator }
     ]
   }
