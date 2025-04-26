@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClock, faBoltLightning, faBolt } from "@fortawesome/free-solid-svg-icons";
-
-const BUCKETSIZE = 30; // feed periods in minutes...
+import { faClock, faBoltLightning, faBolt, faCookie } from "@fortawesome/free-solid-svg-icons";
 
 /**
  * brand: Brand name,
@@ -19,8 +17,8 @@ const snacks = [
 ];
 
 // for time (in minutes), caclulate snacks per bucket
-const calculateSnacks = (time, totalCalories) => {
-  const buckets = time / BUCKETSIZE;
+const calculateSnacks = (time, totalCalories, frequency) => {
+  const buckets = time / (frequency || 1);
   const bucketCals = Math.round(totalCalories / buckets, 2);
   let items = [];
   for (let i = 0; i < buckets; i++) {
@@ -61,6 +59,7 @@ function FuelList(items) {
 function FuelingCalculator() {
   const [requiredCalories, setRequiredCalories] = useState(0);
   const [time, setTime] = useState(0);
+  const [frequency, setFrequency] = useState(60);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -72,21 +71,25 @@ function FuelingCalculator() {
 
     // assume kj == calorie
     setRequiredCalories(parseInt(formData.get("totalwork")));
+
+    // Set fueling frequency
+    setFrequency(parseInt(formData.get('frequency')))
   }
 
   function handleReset(event) {
     event.preventDefault();
     setRequiredCalories(0);
     setTime(0);
+    setFrequency(0);
   }
 
-  const allSnacks = calculateSnacks(time, requiredCalories);
+  const allSnacks = calculateSnacks(time, requiredCalories, frequency);
   const totalCarbs = allSnacks.reduce((acc, obj) => acc + obj.carbs, 0);
   const totalCals = allSnacks.reduce((acc, obj) => acc + obj.calories, 0);
 
   const outputTags =
     requiredCalories > 0 ? (
-      <div className="field is-grouped is-grouped-multiline">
+      <div className="field is-grouped is-grouped-multiline is-pulled-right">
         <div className="control">
           <div className="tags has-addons">
             <span className="tag is-large is-warning">{totalCals}</span>
@@ -107,21 +110,23 @@ function FuelingCalculator() {
   const food = allSnacks.map((item) => {
     return (
       <div>
-        <p className="is-size-4 has-text-weight-light">Feed {item.bucket + 1}</p>
-        <div className="field is-grouped is-grouped-multiline">
-          <div className="control">
-            <div className="tags has-addons">
-              <span className="tag">{item.calories}</span>
-              <span className="tag is-dark">calories</span>
+        <h3 className="is-size-4 has-text-weight-light">
+          Feed {item.bucket + 1}
+          <div className="field is-grouped is-grouped-multiline is-pulled-right">
+            <div className="control">
+              <div className="tags has-addons">
+                <span className="tag is-warning">{item.calories}</span>
+                <span className="tag is-dark">calories</span>
+              </div>
+            </div>
+            <div className="control">
+              <div className="tags has-addons">
+                <span className="tag is-info">{item.carbs}</span>
+                <span className="tag is-dark">g carbs</span>
+              </div>
             </div>
           </div>
-          <div className="control">
-            <div className="tags has-addons">
-              <span className="tag">{item.carbs}</span>
-              <span className="tag is-dark">g carbs</span>
-            </div>
-          </div>
-        </div>
+        </h3>
 
         <FuelList items={[...item.items]} />
         <hr />
@@ -147,7 +152,7 @@ function FuelingCalculator() {
                   type="text"
                   name="ridetime"
                   placeholder="Total ride time"
-                  defaultValue={time}
+                  title="Total ride time"
                 />
                 <span className="icon is-small is-left">
                   <FontAwesomeIcon icon={faClock} />
@@ -164,7 +169,7 @@ function FuelingCalculator() {
                   type="text"
                   name="totalwork"
                   placeholder="Expected total work"
-                  defaultValue={totalCals}
+                  title="Expected total work"
                 />
                 <span className="icon is-small is-left">
                   <FontAwesomeIcon icon={faBoltLightning} />
@@ -172,6 +177,23 @@ function FuelingCalculator() {
               </div>
               <div className="control">
                 <a className="button is-static">in kJ</a>
+              </div>
+            </div>
+            <div className="field has-addons">
+              <div className="control has-icons-left">
+                <input
+                  className="input"
+                  type="text"
+                  name="frequency"
+                  placeholder="Fueling Frequency"
+                  title="Fueling Frequency"
+                />
+                <span className="icon is-small is-left">
+                  <FontAwesomeIcon icon={faCookie} />
+                </span>
+              </div>
+              <div className="control">
+                <a className="button is-static">in minutes</a>
               </div>
             </div>
             <div className="field is-grouped">
@@ -192,8 +214,13 @@ function FuelingCalculator() {
           </form>
         </div>
         <div className="column">
-          {time > 0 && <h2>For {time} total minutes...</h2>}
-          {outputTags}
+          {time > 0 && 
+            <h2>⚡ {time} total minutes.
+              {outputTags}
+            </h2>}
+          {!time && 
+            <h2>👈 Enter details for Fueling!</h2>}
+          <hr/>
           <div>{food}</div>
         </div>
       </div>
