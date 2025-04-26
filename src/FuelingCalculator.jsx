@@ -2,6 +2,8 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faBoltLightning, faBolt, faCookie } from "@fortawesome/free-solid-svg-icons";
 
+import './FuelingCalculator.css';
+
 /**
  * brand: Brand name,
  * name: product name,
@@ -43,9 +45,22 @@ const calculateSnacks = (time, totalCalories, frequency) => {
 
 function FuelItem({ brand, name, carbs, calories }) {
   return (
-    <li>
-      {brand} / {name} / {carbs}g carbs / {calories}kcals
-    </li>
+    <div className="cell">
+      <div className="card fuel-card">
+        <div className="card-content">
+          <p className="title is-size-4 has-text-weight-semibold">{brand}</p>
+          <p className="subtitle has-text-weight-light">{name}</p>
+        </div>
+        <footer className="card-footer">
+          <p className="card-footer-item m-0">
+            <span>{calories} calories</span>
+          </p>
+          <p className="card-footer-item m-0">
+            <span>{carbs}g carbs</span>
+          </p>
+        </footer>
+      </div>
+    </div>
   );
 }
 
@@ -53,7 +68,11 @@ function FuelList(items) {
   const fuelItems = items.items.map((obj, i) => (
     <FuelItem key={"item-" + i} brand={obj.brand} name={obj.name} carbs={obj.carbs} calories={obj.calories} />
   ));
-  return <ul>{fuelItems}</ul>;
+  return (
+    <div className="fixed-grid has-2-cols">
+      <div className="grid">{fuelItems}</div>
+    </div>
+  );
 }
 
 function FuelingCalculator() {
@@ -110,8 +129,13 @@ function FuelingCalculator() {
   const food = allSnacks.map((item) => {
     return (
       <div>
-        <h3 className="is-size-4 has-text-weight-light">
-          Feed {item.bucket + 1}
+        <h3 className="is-size-4 has-text-weight-light mt-5">
+          <span className="icon-text has-text-success">
+            <span className="icon is-small is-left">
+              <FontAwesomeIcon icon={faCookie} />
+            </span>
+            <span>&nbsp; Feed {item.bucket + 1}</span>
+          </span>
           <div className="field is-grouped is-grouped-multiline is-pulled-right">
             <div className="control">
               <div className="tags has-addons">
@@ -215,7 +239,7 @@ function FuelingCalculator() {
         </div>
         <div className="column">
           {time > 0 && 
-            <h2>⚡ {time} total minutes.
+            <h2 className="is-clearfix">⚡ {time} total minutes.
               {outputTags}
             </h2>}
           {!time && 
