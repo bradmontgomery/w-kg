@@ -26,6 +26,11 @@ const calculateSnacks = (time, totalCalories, frequency) => {
   for (let i = 0; i < buckets; i++) {
     let _items = [];
     let _itemCals = 0;
+
+    // XXX: This is a really sub-optimal way to solve this problem. 
+    // A much BETTER approach would be to use a simple greedy algorithm:
+    // e.g. sort my snacks by calories then fill in the feed period until
+    // I hit whatever carb or calorie threshold I want. 
     while (_itemCals <= bucketCals) {
       const obj = snacks[Math.floor(Math.random() * snacks.length)];
       _itemCals += obj.calories;
