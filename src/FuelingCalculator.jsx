@@ -12,39 +12,125 @@ import "./FuelingCalculator.css";
  * serving: Serving size (in grams)
  */
 const snacks = [
-  { brand: "Junkless ", name: "Chocolate Chip", carbs: 21, calories: 130, serving: 31 },
-  { brand: "Cliff Bar", name: "White Chocolate Macadamia Nut", carbs: 42, calories: 260, serving: 68 },
-  { brand: "SIS", name: "GO Isotonic Gel", carbs: 22, calories: 87, serving: 60 },
-  { brand: "Larabar", name: "Lemon Bar", carbs: 24, calories: 200, serving: 45 },
+  { brand: "Junkless ", name: "Chocolate Chip", carbs: 21, calories: 130, serving: 31, type: "food" },
+  { brand: "Cliff Bar", name: "White Chocolate Macadamia Nut", carbs: 42, calories: 260, serving: 68, type: "food" },
+  { brand: "SIS", name: "GO Isotonic Gel", carbs: 22, calories: 87, serving: 60, type: "gel" },
+  { brand: "Larabar", name: "Lemon Bar", carbs: 24, calories: 200, serving: 45, type: "food" },
+  { brand: "Honey Stinger", name: "Organic Waffle", carbs: 27, calories: 150, serving: 28, type: "food" },
+  { brand: "GU", name: "Energy Gel", carbs: 23, calories: 100, serving: 32, type: "gel" },
+  { brand: "Cliff Shot", name: "Bloks", carbs: 23, calories: 100, serving: 36, type: "chew" },
+  { brand: "PowerBar", name: "PowerGel", carbs: 25, calories: 100, serving: 32, type: "gel" },
+  { brand: "Honey Stinger", name: "Organic Energy Chews", carbs: 24, calories: 100, serving: 40, type: "chew" },
+  { brand: "SIS", name: "GO Energy Bar", carbs: 35, calories: 150, serving: 45, type: "food" },
+  { brand: "Cliff Bar", name: "Energy Gel", carbs: 24, calories: 100, serving: 32, type: "gel" },
+  { brand: "GU", name: "Chomps", carbs: 22, calories: 90, serving: 30, type: "chew" },
+  { brand: "PowerBar", name: "PowerBar Protein Plus", carbs: 20, calories: 250, serving: 65, type: "food" },
+  { brand: "Honey Stinger", name: "Organic Energy Bar", carbs: 26, calories: 210, serving: 45, type: "food" },
+  { brand: "SIS", name: "GO Hydro", carbs: 18, calories: 72, serving: 500, type: "drink" },
+  { brand: "Tailwind", name: "Endurance Fuel", carbs: 28, calories: 100, serving: 500, type: "drink" },
+  { brand: "GU", name: "Energy Drink Mix", carbs: 22, calories: 80, serving: 500, type: "drink" },
+  { brand: "Cliff Bar", name: "Electrolyte Drink Mix", carbs: 24, calories: 90, serving: 500, type: "drink" },
+  { brand: "Nuun", name: "Sport Electrolyte Tablets", carbs: 7, calories: 25, serving: 500, type: "drink" },
+  { brand: "Precision Fuel & Hydration", name: "PF 30 Gel", carbs: 30, calories: 120, serving: 32, type: "gel" },
+  { brand: "Precision Fuel & Hydration", name: "PF 20 Chews", carbs: 20, calories: 80, serving: 30, type: "chew" },
+  { brand: "Precision Fuel & Hydration", name: "PF 10 Bar", carbs: 40, calories: 150, serving: 45, type: "food" },
+  { brand: "Precision Fuel & Hydration", name: "PH 1000", carbs: 30, calories: 120, serving: 500, type: "drink" },
+  {
+    brand: "Precision Fuel & Hydration",
+    name: "60g Carb & Electrolyte Drink Mix",
+    carbs: 30,
+    calories: 120,
+    serving: 2,
+    type: "drink",
+  },
 ];
 
-// for time (in minutes), caclulate snacks per bucket
+// for time (in minutes), calculate snacks per bucket using greedy algorithm
 const calculateSnacks = (time, totalCalories, frequency) => {
-  const buckets = time / (frequency || 1);
-  const bucketCals = Math.round(totalCalories / buckets, 2);
-  let items = [];
-  for (let i = 0; i < buckets; i++) {
-    let _items = [];
-    let _itemCals = 0;
+  const buckets = Math.ceil(time / (frequency || 1));
+  const bucketCals = Math.round(totalCalories / buckets);
 
-    // XXX: This is a really sub-optimal way to solve this problem.
-    // A much BETTER approach would be to use a simple greedy algorithm:
-    // e.g. sort my snacks by calories then fill in the feed period until
-    // I hit whatever carb or calorie threshold I want.
-    while (_itemCals <= bucketCals) {
-      const obj = snacks[Math.floor(Math.random() * snacks.length)];
-      _itemCals += obj.calories;
-      _items.push(obj);
+  // Categorize snacks by type
+  const foodItems = snacks.filter((s) => ["food", "gel", "chew"].includes(s.type));
+  const drinkItems = snacks.filter((s) => s.type === "drink");
+
+  // Sort by calorie efficiency (calories per gram) for better selection
+  const sortedFood = [...foodItems].sort((a, b) => b.calories / b.serving - a.calories / a.serving);
+  const sortedDrinks = [...drinkItems].sort((a, b) => b.calories / b.serving - a.calories / a.serving);
+
+  let items = [];
+
+  for (let i = 0; i < buckets; i++) {
+    let bucketItems = [];
+    let remainingCals = bucketCals;
+
+    // Strategy: Mix of solid food and drinks
+    // Aim for 60-70% calories from solid food, 30-40% from drinks
+    const targetFoodCals = Math.round(bucketCals * 0.65);
+    const targetDrinkCals = bucketCals - targetFoodCals;
+
+    // Fill with solid food items first (greedy approach)
+    let foodCals = 0;
+    while (foodCals < targetFoodCals && remainingCals > 0) {
+      // Find the best fitting food item
+      const bestFood = sortedFood.find(
+        (food) => food.calories <= remainingCals && foodCals + food.calories <= targetFoodCals + 50 // Allow some overage
+      );
+
+      if (bestFood) {
+        bucketItems.push(bestFood);
+        foodCals += bestFood.calories;
+        remainingCals -= bestFood.calories;
+      } else {
+        // If no exact fit, take the smallest available food item
+        const smallestFood = sortedFood.reduce((prev, curr) => (curr.calories < prev.calories ? curr : prev));
+        if (smallestFood && remainingCals >= smallestFood.calories * 0.5) {
+          bucketItems.push(smallestFood);
+          foodCals += smallestFood.calories;
+          remainingCals -= smallestFood.calories;
+        }
+        break;
+      }
+    }
+
+    // Fill remaining calories with drinks
+    let drinkCals = 0;
+    while (remainingCals > 20 && drinkCals < targetDrinkCals + 50) {
+      const bestDrink = sortedDrinks.find(
+        (drink) => drink.calories <= remainingCals + 30 // Allow some overage for drinks
+      );
+
+      if (bestDrink) {
+        bucketItems.push(bestDrink);
+        drinkCals += bestDrink.calories;
+        remainingCals -= bestDrink.calories;
+      } else {
+        break;
+      }
+    }
+
+    // If we're still short on calories, add the most efficient remaining items
+    while (remainingCals > 30 && bucketItems.length < 5) {
+      const allRemaining = [...sortedFood, ...sortedDrinks];
+      const bestFit = allRemaining.find((item) => item.calories <= remainingCals + 20);
+
+      if (bestFit) {
+        bucketItems.push(bestFit);
+        remainingCals -= bestFit.calories;
+      } else {
+        break;
+      }
     }
 
     items.push({
       bucket: i,
       requiredCalories: bucketCals,
-      calories: _items.reduce((accumulator, obj) => accumulator + obj.calories, 0),
-      carbs: _items.reduce((accumulator, obj) => accumulator + obj.carbs, 0),
-      items: _items,
+      calories: bucketItems.reduce((acc, obj) => acc + obj.calories, 0),
+      carbs: bucketItems.reduce((acc, obj) => acc + obj.carbs, 0),
+      items: bucketItems,
     });
   }
+
   return items;
 };
 
