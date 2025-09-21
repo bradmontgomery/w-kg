@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faBoltLightning, faBolt, faCookie } from "@fortawesome/free-solid-svg-icons";
 
-import './FuelingCalculator.css';
+import "./FuelingCalculator.css";
 
 /**
  * brand: Brand name,
@@ -27,10 +27,10 @@ const calculateSnacks = (time, totalCalories, frequency) => {
     let _items = [];
     let _itemCals = 0;
 
-    // XXX: This is a really sub-optimal way to solve this problem. 
+    // XXX: This is a really sub-optimal way to solve this problem.
     // A much BETTER approach would be to use a simple greedy algorithm:
     // e.g. sort my snacks by calories then fill in the feed period until
-    // I hit whatever carb or calorie threshold I want. 
+    // I hit whatever carb or calorie threshold I want.
     while (_itemCals <= bucketCals) {
       const obj = snacks[Math.floor(Math.random() * snacks.length)];
       _itemCals += obj.calories;
@@ -97,7 +97,7 @@ function FuelingCalculator() {
     setRequiredCalories(parseInt(formData.get("totalwork")));
 
     // Set fueling frequency
-    setFrequency(parseInt(formData.get('frequency')))
+    setFrequency(parseInt(formData.get("frequency")));
   }
 
   function handleReset(event) {
@@ -133,7 +133,7 @@ function FuelingCalculator() {
 
   const food = allSnacks.map((item) => {
     return (
-      <div>
+      <div key={`feed-${item.bucket}`}>
         <h3 className="is-size-4 has-text-weight-light mt-5">
           <span className="icon-text has-text-success">
             <span className="icon is-small is-left">
@@ -243,13 +243,14 @@ function FuelingCalculator() {
           </form>
         </div>
         <div className="column">
-          {time > 0 && 
-            <h2 className="is-clearfix">⚡ {time} total minutes.
+          {time > 0 && (
+            <h2 className="is-clearfix">
+              ⚡ {time} total minutes.
               {outputTags}
-            </h2>}
-          {!time && 
-            <h2>👈 Enter details for Fueling!</h2>}
-          <hr/>
+            </h2>
+          )}
+          {!time && <h2>👈 Enter details for Fueling!</h2>}
+          <hr />
           <div>{food}</div>
         </div>
       </div>
