@@ -7,6 +7,7 @@ This is a simple front-end application that contains various cycling-related (cy
 - npm run build: Build the project
 - npm run lint: Run eslint
 - npm run preview: Run a preview server
+- npm run test: Run the test suite.
 
 # Code style
 - Use ES modules (import/export) syntax, not CommonJS (require)
