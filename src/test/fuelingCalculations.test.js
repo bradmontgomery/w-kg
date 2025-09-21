@@ -12,77 +12,77 @@ const snacks = [
 ];
 
 // Recreate the calculateSnacks function for testing (greedy algorithm version)
-function calculateSnacks(time, totalCalories, frequency) {
+function calculateSnacks(time, totalCarbs, frequency) {
   const buckets = Math.ceil(time / (frequency || 1));
-  const bucketCals = Math.round(totalCalories / buckets);
+  const bucketCarbs = Math.round(totalCarbs / buckets);
 
   // Categorize snacks by type
   const foodItems = snacks.filter((s) => ["food", "gel", "chew"].includes(s.type));
   const drinkItems = snacks.filter((s) => s.type === "drink");
 
-  // Sort by calorie efficiency (calories per gram) for better selection
-  const sortedFood = [...foodItems].sort((a, b) => b.calories / b.serving - a.calories / a.serving);
-  const sortedDrinks = [...drinkItems].sort((a, b) => b.calories / b.serving - a.calories / a.serving);
+  // Sort by carb efficiency (carbs per gram) for better selection
+  const sortedFood = [...foodItems].sort((a, b) => b.carbs / b.serving - a.carbs / a.serving);
+  const sortedDrinks = [...drinkItems].sort((a, b) => b.carbs / b.serving - a.carbs / a.serving);
 
   let items = [];
 
   for (let i = 0; i < buckets; i++) {
     let bucketItems = [];
-    let remainingCals = bucketCals;
+    let remainingCarbs = bucketCarbs;
 
     // Strategy: Mix of solid food and drinks
-    // Aim for 60-70% calories from solid food, 30-40% from drinks
-    const targetFoodCals = Math.round(bucketCals * 0.65);
-    const targetDrinkCals = bucketCals - targetFoodCals;
+    // Aim for 60-70% carbs from solid food, 30-40% from drinks
+    const targetFoodCarbs = Math.round(bucketCarbs * 0.65);
+    const targetDrinkCarbs = bucketCarbs - targetFoodCarbs;
 
     // Fill with solid food items first (greedy approach)
-    let foodCals = 0;
-    while (foodCals < targetFoodCals && remainingCals > 0) {
+    let foodCarbs = 0;
+    while (foodCarbs < targetFoodCarbs && remainingCarbs > 0) {
       // Find the best fitting food item
       const bestFood = sortedFood.find(
-        (food) => food.calories <= remainingCals && foodCals + food.calories <= targetFoodCals + 50 // Allow some overage
+        (food) => food.carbs <= remainingCarbs && foodCarbs + food.carbs <= targetFoodCarbs + 10 // Allow some overage
       );
 
       if (bestFood) {
         bucketItems.push(bestFood);
-        foodCals += bestFood.calories;
-        remainingCals -= bestFood.calories;
+        foodCarbs += bestFood.carbs;
+        remainingCarbs -= bestFood.carbs;
       } else {
         // If no exact fit, take the smallest available food item
-        const smallestFood = sortedFood.reduce((prev, curr) => (curr.calories < prev.calories ? curr : prev));
-        if (smallestFood && remainingCals >= smallestFood.calories * 0.5) {
+        const smallestFood = sortedFood.reduce((prev, curr) => (curr.carbs < prev.carbs ? curr : prev));
+        if (smallestFood && remainingCarbs >= smallestFood.carbs * 0.5) {
           bucketItems.push(smallestFood);
-          foodCals += smallestFood.calories;
-          remainingCals -= smallestFood.calories;
+          foodCarbs += smallestFood.carbs;
+          remainingCarbs -= smallestFood.carbs;
         }
         break;
       }
     }
 
-    // Fill remaining calories with drinks
-    let drinkCals = 0;
-    while (remainingCals > 20 && drinkCals < targetDrinkCals + 50) {
+    // Fill remaining carbs with drinks
+    let drinkCarbs = 0;
+    while (remainingCarbs > 5 && drinkCarbs < targetDrinkCarbs + 10) {
       const bestDrink = sortedDrinks.find(
-        (drink) => drink.calories <= remainingCals + 30 // Allow some overage for drinks
+        (drink) => drink.carbs <= remainingCarbs + 5 // Allow some overage for drinks
       );
 
       if (bestDrink) {
         bucketItems.push(bestDrink);
-        drinkCals += bestDrink.calories;
-        remainingCals -= bestDrink.calories;
+        drinkCarbs += bestDrink.carbs;
+        remainingCarbs -= bestDrink.carbs;
       } else {
         break;
       }
     }
 
-    // If we're still short on calories, add the most efficient remaining items
-    while (remainingCals > 30 && bucketItems.length < 5) {
+    // If we're still short on carbs, add the most efficient remaining items
+    while (remainingCarbs > 5 && bucketItems.length < 5) {
       const allRemaining = [...sortedFood, ...sortedDrinks];
-      const bestFit = allRemaining.find((item) => item.calories <= remainingCals + 20);
+      const bestFit = allRemaining.find((item) => item.carbs <= remainingCarbs + 5);
 
       if (bestFit) {
         bucketItems.push(bestFit);
-        remainingCals -= bestFit.calories;
+        remainingCarbs -= bestFit.carbs;
       } else {
         break;
       }
@@ -90,7 +90,7 @@ function calculateSnacks(time, totalCalories, frequency) {
 
     items.push({
       bucket: i,
-      requiredCalories: bucketCals,
+      requiredCarbs: bucketCarbs,
       calories: bucketItems.reduce((acc, obj) => acc + obj.calories, 0),
       carbs: bucketItems.reduce((acc, obj) => acc + obj.carbs, 0),
       items: bucketItems,
@@ -103,36 +103,36 @@ function calculateSnacks(time, totalCalories, frequency) {
 describe("FuelingCalculator utility functions", () => {
   describe("calculateSnacks function", () => {
     it("calculates correct number of feeding buckets", () => {
-      const result = calculateSnacks(120, 1200, 60); // 2 hours, every 60 minutes
+      const result = calculateSnacks(120, 120, 60); // 2 hours, 120g carbs, every 60 minutes
       expect(result).toHaveLength(2);
     });
 
-    it("distributes calories across buckets correctly", () => {
-      const result = calculateSnacks(60, 600, 60); // 1 hour, every 60 minutes
+    it("distributes carbs across buckets correctly", () => {
+      const result = calculateSnacks(60, 60, 60); // 1 hour, 60g carbs, every 60 minutes
       expect(result).toHaveLength(1);
-      expect(result[0].requiredCalories).toBe(600);
+      expect(result[0].requiredCarbs).toBe(60);
     });
 
     it("handles edge case with zero frequency", () => {
-      const result = calculateSnacks(60, 600, 0);
+      const result = calculateSnacks(60, 60, 0);
       // Should default to frequency of 1 to avoid division by zero
       expect(result).toHaveLength(60); // 60 / 1 = 60 buckets
     });
 
-    it("calculates bucket calories correctly", () => {
-      const result = calculateSnacks(120, 1200, 60); // 120min, 1200cal, every 60min
-      expect(result[0].requiredCalories).toBe(600); // 1200 / 2 buckets = 600 per bucket
-      expect(result[1].requiredCalories).toBe(600);
+    it("calculates bucket carbs correctly", () => {
+      const result = calculateSnacks(120, 120, 60); // 120min, 120g carbs, every 60min
+      expect(result[0].requiredCarbs).toBe(60); // 120g / 2 buckets = 60g per bucket
+      expect(result[1].requiredCarbs).toBe(60);
     });
 
     it("includes snack items in each bucket", () => {
-      const result = calculateSnacks(60, 600, 60);
+      const result = calculateSnacks(60, 60, 60);
       expect(result[0].items).toBeDefined();
       expect(Array.isArray(result[0].items)).toBe(true);
     });
 
     it("calculates total calories and carbs for each bucket", () => {
-      const result = calculateSnacks(60, 600, 60);
+      const result = calculateSnacks(60, 60, 60);
       const bucket = result[0];
 
       expect(bucket.calories).toBeGreaterThan(0);
@@ -142,7 +142,7 @@ describe("FuelingCalculator utility functions", () => {
     });
 
     it("creates sequential bucket numbers", () => {
-      const result = calculateSnacks(180, 1800, 60); // 3 hours, every 60 minutes
+      const result = calculateSnacks(180, 180, 60); // 3 hours, 180g carbs, every 60 minutes
       expect(result).toHaveLength(3);
       expect(result[0].bucket).toBe(0);
       expect(result[1].bucket).toBe(1);
@@ -150,12 +150,12 @@ describe("FuelingCalculator utility functions", () => {
     });
 
     it("handles non-integer bucket divisions", () => {
-      const result = calculateSnacks(90, 900, 60); // 1.5 hours, every 60 minutes
+      const result = calculateSnacks(90, 90, 60); // 1.5 hours, 90g carbs, every 60 minutes
       expect(result).toHaveLength(2); // 90/60 = 1.5, so we get 2 buckets since no fractional buckets
     });
 
     it("balances food types between solid food and drinks", () => {
-      const result = calculateSnacks(120, 1200, 60); // 2 hours, 1200 calories, every 60 minutes
+      const result = calculateSnacks(120, 120, 60); // 2 hours, 120g carbs, every 60 minutes
 
       result.forEach((bucket) => {
         const solidFoodItems = bucket.items.filter((item) => ["food", "gel", "chew"].includes(item.type));
@@ -170,39 +170,39 @@ describe("FuelingCalculator utility functions", () => {
       });
     });
 
-    it("prioritizes calorie efficiency in selection", () => {
-      const result = calculateSnacks(60, 400, 60); // 1 hour, 400 calories
+    it("prioritizes carb efficiency in selection", () => {
+      const result = calculateSnacks(60, 40, 60); // 1 hour, 40g carbs
       const bucket = result[0];
 
-      // Should select items efficiently to meet calorie target
-      expect(bucket.calories).toBeGreaterThan(300); // Should get close to target
-      expect(bucket.calories).toBeLessThan(600); // But not wildly exceed it
+      // Should select items efficiently to meet carb target
+      expect(bucket.carbs).toBeGreaterThan(30); // Should get close to target
+      expect(bucket.carbs).toBeLessThan(60); // But not wildly exceed it
     });
 
     it("uses deterministic selection algorithm", () => {
-      const result1 = calculateSnacks(120, 1200, 60);
-      const result2 = calculateSnacks(120, 1200, 60);
+      const result1 = calculateSnacks(120, 120, 60);
+      const result2 = calculateSnacks(120, 120, 60);
 
       // Should produce identical results (deterministic)
       expect(result1.length).toBe(result2.length);
 
       result1.forEach((bucket, index) => {
         expect(bucket.bucket).toBe(result2[index].bucket);
-        expect(bucket.requiredCalories).toBe(result2[index].requiredCalories);
+        expect(bucket.requiredCarbs).toBe(result2[index].requiredCarbs);
         expect(bucket.items.length).toBe(result2[index].items.length);
       });
     });
 
-    it("creates reasonable calorie distribution", () => {
-      const result = calculateSnacks(180, 1800, 60); // 3 hours, 1800 calories
+    it("creates reasonable carb distribution", () => {
+      const result = calculateSnacks(180, 180, 60); // 3 hours, 180g carbs
 
       result.forEach((bucket) => {
-        // Each bucket should aim for ~600 calories (1800/3)
-        expect(bucket.requiredCalories).toBe(600);
+        // Each bucket should aim for ~60g carbs (180g/3)
+        expect(bucket.requiredCarbs).toBe(60);
 
-        // Actual calories should be reasonably close to target
-        expect(bucket.calories).toBeGreaterThan(400);
-        expect(bucket.calories).toBeLessThan(800);
+        // Actual carbs should be reasonably close to target
+        expect(bucket.carbs).toBeGreaterThan(40);
+        expect(bucket.carbs).toBeLessThan(80);
       });
     });
   });

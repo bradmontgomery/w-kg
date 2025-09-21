@@ -46,77 +46,77 @@ const snacks = [
 ];
 
 // for time (in minutes), calculate snacks per bucket using greedy algorithm
-const calculateSnacks = (time, totalCalories, frequency) => {
+const calculateSnacks = (time, totalCarbs, frequency) => {
   const buckets = Math.ceil(time / (frequency || 1));
-  const bucketCals = Math.round(totalCalories / buckets);
+  const bucketCarbs = Math.round(totalCarbs / buckets);
 
   // Categorize snacks by type
   const foodItems = snacks.filter((s) => ["food", "gel", "chew"].includes(s.type));
   const drinkItems = snacks.filter((s) => s.type === "drink");
 
-  // Sort by calorie efficiency (calories per gram) for better selection
-  const sortedFood = [...foodItems].sort((a, b) => b.calories / b.serving - a.calories / a.serving);
-  const sortedDrinks = [...drinkItems].sort((a, b) => b.calories / b.serving - a.calories / a.serving);
+  // Sort by carb efficiency (carbs per gram) for better selection
+  const sortedFood = [...foodItems].sort((a, b) => b.carbs / b.serving - a.carbs / a.serving);
+  const sortedDrinks = [...drinkItems].sort((a, b) => b.carbs / b.serving - a.carbs / a.serving);
 
   let items = [];
 
   for (let i = 0; i < buckets; i++) {
     let bucketItems = [];
-    let remainingCals = bucketCals;
+    let remainingCarbs = bucketCarbs;
 
     // Strategy: Mix of solid food and drinks
-    // Aim for 60-70% calories from solid food, 30-40% from drinks
-    const targetFoodCals = Math.round(bucketCals * 0.65);
-    const targetDrinkCals = bucketCals - targetFoodCals;
+    // Aim for 60-70% carbs from solid food, 30-40% from drinks
+    const targetFoodCarbs = Math.round(bucketCarbs * 0.65);
+    const targetDrinkCarbs = bucketCarbs - targetFoodCarbs;
 
     // Fill with solid food items first (greedy approach)
-    let foodCals = 0;
-    while (foodCals < targetFoodCals && remainingCals > 0) {
+    let foodCarbs = 0;
+    while (foodCarbs < targetFoodCarbs && remainingCarbs > 0) {
       // Find the best fitting food item
       const bestFood = sortedFood.find(
-        (food) => food.calories <= remainingCals && foodCals + food.calories <= targetFoodCals + 50 // Allow some overage
+        (food) => food.carbs <= remainingCarbs && foodCarbs + food.carbs <= targetFoodCarbs + 10 // Allow some overage
       );
 
       if (bestFood) {
         bucketItems.push(bestFood);
-        foodCals += bestFood.calories;
-        remainingCals -= bestFood.calories;
+        foodCarbs += bestFood.carbs;
+        remainingCarbs -= bestFood.carbs;
       } else {
         // If no exact fit, take the smallest available food item
-        const smallestFood = sortedFood.reduce((prev, curr) => (curr.calories < prev.calories ? curr : prev));
-        if (smallestFood && remainingCals >= smallestFood.calories * 0.5) {
+        const smallestFood = sortedFood.reduce((prev, curr) => (curr.carbs < prev.carbs ? curr : prev));
+        if (smallestFood && remainingCarbs >= smallestFood.carbs * 0.5) {
           bucketItems.push(smallestFood);
-          foodCals += smallestFood.calories;
-          remainingCals -= smallestFood.calories;
+          foodCarbs += smallestFood.carbs;
+          remainingCarbs -= smallestFood.carbs;
         }
         break;
       }
     }
 
-    // Fill remaining calories with drinks
-    let drinkCals = 0;
-    while (remainingCals > 20 && drinkCals < targetDrinkCals + 50) {
+    // Fill remaining carbs with drinks
+    let drinkCarbs = 0;
+    while (remainingCarbs > 5 && drinkCarbs < targetDrinkCarbs + 10) {
       const bestDrink = sortedDrinks.find(
-        (drink) => drink.calories <= remainingCals + 30 // Allow some overage for drinks
+        (drink) => drink.carbs <= remainingCarbs + 5 // Allow some overage for drinks
       );
 
       if (bestDrink) {
         bucketItems.push(bestDrink);
-        drinkCals += bestDrink.calories;
-        remainingCals -= bestDrink.calories;
+        drinkCarbs += bestDrink.carbs;
+        remainingCarbs -= bestDrink.carbs;
       } else {
         break;
       }
     }
 
-    // If we're still short on calories, add the most efficient remaining items
-    while (remainingCals > 30 && bucketItems.length < 5) {
+    // If we're still short on carbs, add the most efficient remaining items
+    while (remainingCarbs > 5 && bucketItems.length < 5) {
       const allRemaining = [...sortedFood, ...sortedDrinks];
-      const bestFit = allRemaining.find((item) => item.calories <= remainingCals + 20);
+      const bestFit = allRemaining.find((item) => item.carbs <= remainingCarbs + 5);
 
       if (bestFit) {
         bucketItems.push(bestFit);
-        remainingCals -= bestFit.calories;
+        remainingCarbs -= bestFit.carbs;
       } else {
         break;
       }
@@ -124,7 +124,7 @@ const calculateSnacks = (time, totalCalories, frequency) => {
 
     items.push({
       bucket: i,
-      requiredCalories: bucketCals,
+      requiredCarbs: bucketCarbs,
       calories: bucketItems.reduce((acc, obj) => acc + obj.calories, 0),
       carbs: bucketItems.reduce((acc, obj) => acc + obj.carbs, 0),
       items: bucketItems,
@@ -167,7 +167,7 @@ function FuelList(items) {
 }
 
 function FuelingCalculator() {
-  const [requiredCalories, setRequiredCalories] = useState(0);
+  const [requiredCarbs, setRequiredCarbs] = useState(0);
   const [time, setTime] = useState(0);
   const [frequency, setFrequency] = useState(60);
 
@@ -179,8 +179,8 @@ function FuelingCalculator() {
     minutes = minutes + parseInt(formData.get("ridetime").split(":")[1]);
     setTime(minutes);
 
-    // assume kj == calorie
-    setRequiredCalories(parseInt(formData.get("totalwork")));
+    // Set target carbs in grams
+    setRequiredCarbs(parseInt(formData.get("totalcarbs")));
 
     // Set fueling frequency
     setFrequency(parseInt(formData.get("frequency")));
@@ -188,17 +188,17 @@ function FuelingCalculator() {
 
   function handleReset(event) {
     event.preventDefault();
-    setRequiredCalories(0);
+    setRequiredCarbs(0);
     setTime(0);
     setFrequency(0);
   }
 
-  const allSnacks = calculateSnacks(time, requiredCalories, frequency);
+  const allSnacks = calculateSnacks(time, requiredCarbs, frequency);
   const totalCarbs = allSnacks.reduce((acc, obj) => acc + obj.carbs, 0);
   const totalCals = allSnacks.reduce((acc, obj) => acc + obj.calories, 0);
 
   const outputTags =
-    requiredCalories > 0 ? (
+    requiredCarbs > 0 ? (
       <div className="field is-grouped is-grouped-multiline is-pulled-right">
         <div className="control">
           <div className="tags has-addons">
@@ -209,7 +209,7 @@ function FuelingCalculator() {
         <div className="control">
           <div className="tags has-addons">
             <span className="tag is-large is-info">{totalCarbs}</span>
-            <span className="tag is-large is-dark">g</span>
+            <span className="tag is-large is-dark">g carbs</span>
           </div>
         </div>
       </div>
@@ -230,14 +230,14 @@ function FuelingCalculator() {
           <div className="field is-grouped is-grouped-multiline is-pulled-right">
             <div className="control">
               <div className="tags has-addons">
-                <span className="tag is-warning">{item.calories}</span>
-                <span className="tag is-dark">calories</span>
+                <span className="tag is-info">{item.carbs}</span>
+                <span className="tag is-dark">g carbs</span>
               </div>
             </div>
             <div className="control">
               <div className="tags has-addons">
-                <span className="tag is-info">{item.carbs}</span>
-                <span className="tag is-dark">g carbs</span>
+                <span className="tag is-warning">{item.calories}</span>
+                <span className="tag is-dark">calories</span>
               </div>
             </div>
           </div>
@@ -256,7 +256,7 @@ function FuelingCalculator() {
         <span> Fueling Calculator! </span>
         <span className="icon">🔋</span>
       </h1>
-      <p className="subtitle">Counting the Calroies &amp; Carbs for you.</p>
+      <p className="subtitle">Optimizing your carbohydrate intake for peak performance.</p>
       <div className="columns">
         <div className="column">
           <form action="#" onSubmit={handleSubmit}>
@@ -282,16 +282,16 @@ function FuelingCalculator() {
                 <input
                   className="input"
                   type="text"
-                  name="totalwork"
-                  placeholder="Expected total work"
-                  title="Expected total work"
+                  name="totalcarbs"
+                  placeholder="Target carbohydrates"
+                  title="Target carbohydrates"
                 />
                 <span className="icon is-small is-left">
                   <FontAwesomeIcon icon={faBoltLightning} />
                 </span>
               </div>
               <div className="control">
-                <a className="button is-static">in kJ</a>
+                <a className="button is-static">in grams</a>
               </div>
             </div>
             <div className="field has-addons">
